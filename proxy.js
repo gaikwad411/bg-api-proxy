@@ -39,12 +39,14 @@ http.createServer(function(req, res) {
 proxy.on('proxyRes', function (proxyRes, req, res) {
   responseId = req['responseId']; 
   // On response from proxy
-  var body = Buffer.alloc('');
-    
-  proxyRes.on('data', function (data) {
-      body = Buffer.concat([body, data]);
-  });
+  var body = '';
   
+  proxyRes.on('data' , function(dataBuffer){
+    var data = dataBuffer.toString('utf8');
+    console.log("This is the data from target server : "+ data);
+    body += data;
+  });
+    
   proxyRes.on('end', function () {
       body = body.toString();
       fs.writeFile('responses/'+responseId+'.json', body, function(err){
