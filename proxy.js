@@ -39,7 +39,7 @@ http.createServer(function(req, res) {
 proxy.on('proxyRes', function (proxyRes, req, res) {
   responseId = req['responseId']; 
   // On response from proxy
-  var body = new Buffer('');
+  var body = Buffer.alloc('');
     
   proxyRes.on('data', function (data) {
       body = Buffer.concat([body, data]);
