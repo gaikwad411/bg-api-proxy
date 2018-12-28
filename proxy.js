@@ -28,7 +28,7 @@ http.createServer(function(req, res) {
   proxy.web(req, res, { target: "http://localhost:3000" });
   
   res.writeHead(200, { 'Content-Type': 'application/json' });
-  res.send(JSON.stringify({
+  res.write(JSON.stringify({
     'status':'success', 
     'response_id': responseId}));
   res.end();
