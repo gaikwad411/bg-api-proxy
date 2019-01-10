@@ -3,7 +3,6 @@ httpProxy = require('http-proxy');
 var fs =  require('fs');
 var uuid = require('uuid');
 
-var options = { target: "http://localhost:3000" };
 var proxy = httpProxy.createProxyServer({});
 
 
@@ -25,7 +24,7 @@ http.createServer(function(req, res) {
 
   var responseId = uuid.v4();
   req['responseId'] = responseId;
-  proxy.web(req, res, { target: "http://localhost:3000" });
+  proxy.web(req, res, { target: "http://localhost:8000" });
   
   res.writeHead(200, { 'Content-Type': 'application/json' });
   res.write(JSON.stringify({
