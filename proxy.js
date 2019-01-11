@@ -1,14 +1,22 @@
-var http = require('http'),
-httpProxy = require('http-proxy');
+// Asynchronous Proxy Server 
+// It creates http proxy server and proxies requests to another server, but it does not wait for response, thus
+// it is good for proxy of long running requests.
+//
+// Created By Sachin Gaikwad <gaikwad411@gmail.com>
+
+
 var fs =  require('fs');
 var uuid = require('uuid');
-
+var config = require('./config.js');
+var http = require('http');
+var httpProxy = require('http-proxy');
 var proxy = httpProxy.createProxyServer({});
 
 
+// Create http server for proxy
 http.createServer(function(req, res) {
 
-
+  // To handle received responses
   var filePath = '.' + req.url;
   if(filePath.indexOf('responses/') > -1){
     fs.readFile(filePath.substring(filePath.indexOf('responses/')), function(err, data) {
@@ -16,30 +24,27 @@ http.createServer(function(req, res) {
       res.write(data);
       res.end();
     });
-
-    
     return;
   }
 
-
+  // To handle proxy function
   var responseId = uuid.v4();
   req['responseId'] = responseId;
-  proxy.web(req, res, { target: "http://localhost:8000" });
-  
+  proxy.web(req, res, { target: config.proxyURL });
   res.writeHead(200, { 'Content-Type': 'application/json' });
   res.write(JSON.stringify({
     'status':'success', 
     'response_id': responseId}));
   res.end();
 })
-.listen(9000);
+.listen(config.port);
 
 
+// On response received from proxied request
 proxy.on('proxyRes', function (proxyRes, req, res) {
-  responseId = req['responseId']; 
   // On response from proxy
+  responseId = req['responseId']; 
   var body = '';
-  
   proxyRes.on('data' , function(dataBuffer){
     var data = dataBuffer.toString('utf8');
     console.log("This is the data from target server : "+ data);
