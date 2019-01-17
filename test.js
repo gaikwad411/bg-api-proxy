@@ -1,9 +1,14 @@
 var expect = require('chai').expect;
+var config = require('./config.js');
 
 
-describe('Hello World Test', function () {
-    // 
-    it('should say hi', function () {
-        expect('hi').to.be.equal('hi');
+describe('config is set', function () {
+    
+    it('config should have port key', function () {
+        expect(config.port).not.to.be.undefined();
+    });
+
+    it('config should have proxyURL', function () {
+        expect(config.proxyURL).not.to.be.undefined();
     });
 });
