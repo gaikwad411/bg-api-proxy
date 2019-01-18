@@ -4,7 +4,6 @@
 //
 // Created By Sachin Gaikwad <gaikwad411@gmail.com>
 
-
 var fs =  require('fs');
 var uuid = require('uuid');
 var config = require('./config.js');
@@ -13,34 +12,36 @@ var httpProxy = require('http-proxy');
 var proxy = httpProxy.createProxyServer({});
 
 
+
 // Create http server for proxy
-http.createServer(function(req, res) {
+var createProxyServer = function(){
+  http.createServer(function(req, res) {
+    // To handle received responses
+    var filePath = '.' + req.url;
+    if(filePath.indexOf('responses/') > -1){
+      fs.readFile(filePath.substring(filePath.indexOf('responses/')), function(err, data) {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.write(data);
+        res.end();
+      });
+      return;
+    }
+  
+    // To handle proxy function
+    var responseId = uuid.v4();
+    req['responseId'] = responseId;
+    proxy.web(req, res, { target: config.proxyURL });
+    res.writeHead(200, { 'Content-Type': 'application/json' });
+    res.write(JSON.stringify({
+      'status':'success', 
+      'response_id': responseId}));
+    res.end();
+  })
+  .listen(config.port, '127.0.0.1', function(){
+    console.log('Started HTTP server for proxy on port '+config.port+' on host 127.0.0.1');
+  });
 
-  // To handle received responses
-  var filePath = '.' + req.url;
-  if(filePath.indexOf('responses/') > -1){
-    fs.readFile(filePath.substring(filePath.indexOf('responses/')), function(err, data) {
-      res.writeHead(200, { 'Content-Type': 'application/json' });
-      res.write(data);
-      res.end();
-    });
-    return;
-  }
-
-  // To handle proxy function
-  var responseId = uuid.v4();
-  req['responseId'] = responseId;
-  proxy.web(req, res, { target: config.proxyURL });
-  res.writeHead(200, { 'Content-Type': 'application/json' });
-  res.write(JSON.stringify({
-    'status':'success', 
-    'response_id': responseId}));
-  res.end();
-})
-.listen(config.port);
-
-
-// On response received from proxied request
+  // On response received from proxied request
 proxy.on('proxyRes', function (proxyRes, req, res) {
   // On response from proxy
   responseId = req['responseId']; 
@@ -63,3 +64,14 @@ proxy.on('proxyRes', function (proxyRes, req, res) {
   });
 
 });
+
+};
+
+
+if (require.main === module) {
+  return createProxyServer();
+}
+
+module.exports = {
+  createProxyServer
+}
